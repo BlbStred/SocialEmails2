@@ -28,6 +28,9 @@ class EmailMessage:
         return result
         
 
+
+def isRelevant(topic):
+    return "new invitation" in topic
         
 
 def get_gmail_service():
@@ -50,7 +53,7 @@ def get_gmail_service():
 
 
 
-def getEmailList(category):
+def getEmailList(category, isrelevant):
     service = get_gmail_service()
     
     # List messages (Gmail returns these in reverse chronological order by default)
@@ -71,14 +74,15 @@ def getEmailList(category):
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
         sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
 
-        result.append(EmailMessage(msg['id'], sender, subject))
+        if (isRelevant(subject)):
+            result.append(EmailMessage(msg['id'], sender, subject))
 
     return result
 
         
 
 if __name__ == '__main__':
-    emails = getEmailList('category:social')
+    emails = getEmailList('category:social', isRelevant)
     for e in emails:
         print(e)
 
