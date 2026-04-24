@@ -52,22 +52,24 @@ def get_gmail_service():
 
 def getEmailList(category):
     service = get_gmail_service()
-        
+    
     # List messages (Gmail returns these in reverse chronological order by default)
     results = service.users().messages().list(userId='me', q=category).execute()
     messages = results.get('messages', [])
 
     result = []
     for msg in messages:
-        # Fetch full message details
+        # msg provides id only, fetch full message details
         message = service.users().messages().get(userId='me', id=msg['id']).execute()
         
         # Extract headers for display
         payload = message.get('payload', {})
         headers = payload.get('headers', [])
         
+        # headers is a list of dictionaries {'name: ..., 'value': ...}
+        # To get the subject, for example, find the first dictionary {'name: 'Subject', 'value': ...}
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
-        sender = next((h['value'] for h in headers if h['name'] == 'From'), 'Unknown Sender')
+        sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
 
         result.append(EmailMessage(msg['id'], sender, subject))
 
