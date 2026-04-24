@@ -7,6 +7,9 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from openai import OpenAI
 from dotenv import load_dotenv # run 'pip install python-dotenv'
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Load environmet variables from .env
 load_dotenv()
@@ -53,7 +56,7 @@ def get_gmail_service():
 
 
 
-def getEmailList(category, isrelevant):
+def getEmailList(category):
     service = get_gmail_service()
     
     # List messages (Gmail returns these in reverse chronological order by default)
@@ -74,15 +77,64 @@ def getEmailList(category, isrelevant):
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
         sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
 
-        if (isRelevant(subject)):
-            result.append(EmailMessage(msg['id'], sender, subject))
+        result.append(EmailMessage(msg['id'], sender, subject))
 
     return result
 
+
+
+def sendEmail(emailList, isrelevant):
+    # --- Configuration ---
+    sender_email = "a.dan.brand@gmail.com"
+    receiver_email = "a.dan.brand@gmail.com"
+    password = "zxyf xhra flki fjsd"  # Use an App Password, not your login password
+    
+    subject = "Social Emails"
+    body = "Received " + str(len(emailList)) + " social emails\n\n"
+    for e in emailList:
+        if (isRelevant(e.subject)):
+            body += e.subject + "\n"
+            
+
+
+
+
+    
+
+    # --- Creating the Message ---
+    # We use 'utf-8' here to prevent the UnicodeEncodeError you encountered earlier
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+    try:
+        # --- Connecting to Server ---
+        # For Gmail: smtp.gmail.com | Port: 587
+        # For Outlook: smtp.office365.com | Port: 587
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()  # Secure the connection
         
+        server.login(sender_email, password)
+        
+        # --- Sending ---
+        server.send_message(msg)
+        print("Email sent successfully!")
+
+    except Exception as e:
+        # Defensive error handling to keep the program running
+        print(f"Error: {e}")
+    
+    finally:
+        server.quit()
+
+
+
 
 if __name__ == '__main__':
-    emails = getEmailList('category:social', isRelevant)
+    emails = getEmailList('category:social')
+    sendEmail(emails, isRelevant)
     for e in emails:
         print(e)
 
