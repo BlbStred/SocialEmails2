@@ -13,3 +13,5 @@ load_dotenv()
 
 # Reconfigure stdout to handle errors gracefully
 sys.stdout.reconfigure(errors='replace')
+
+# Get list of emails
