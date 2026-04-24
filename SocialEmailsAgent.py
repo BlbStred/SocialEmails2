@@ -84,30 +84,19 @@ def getEmailList(category):
 
 
 def sendEmail(emailList, isrelevant):
-    # --- Configuration ---
-    sender_email = "a.dan.brand@gmail.com"
-    receiver_email = "a.dan.brand@gmail.com"
-    password = "zxyf xhra flki fjsd"  # Use an App Password, not your login password
     
-    subject = "Social Emails"
+    msg = MIMEMultipart()
+    msg['From']    = "a.dan.brand@gmail.com"
+    msg['To']      = "a.dan.brand@gmail.com"
+    msg['Subject'] = "Social Emails"
+        
     body = "Received " + str(len(emailList)) + " social emails\n\n"
     for e in emailList:
         if (isRelevant(e.subject)):
             body += e.subject + "\n"
             
-
-
-
-
-    
-
-    # --- Creating the Message ---
-    # We use 'utf-8' here to prevent the UnicodeEncodeError you encountered earlier
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
 
     try:
         # --- Connecting to Server ---
@@ -115,15 +104,11 @@ def sendEmail(emailList, isrelevant):
         # For Outlook: smtp.office365.com | Port: 587
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()  # Secure the connection
-        
-        server.login(sender_email, password)
-        
-        # --- Sending ---
+        server.login("a.dan.brand@gmail.com",
+                     "zxyf xhra flki fjsd")  # App Password, not login password
         server.send_message(msg)
-        print("Email sent successfully!")
-
+        
     except Exception as e:
-        # Defensive error handling to keep the program running
         print(f"Error: {e}")
     
     finally:
@@ -135,6 +120,5 @@ def sendEmail(emailList, isrelevant):
 if __name__ == '__main__':
     emails = getEmailList('category:social')
     sendEmail(emails, isRelevant)
-    for e in emails:
-        print(e)
+    
 
