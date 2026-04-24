@@ -49,16 +49,12 @@ def get_gmail_service():
     return build('gmail', 'v1', credentials=creds)
 
 
-# Get list of emails
-def iterate_social_tab():
+
+def getEmailList(category):
     service = get_gmail_service()
-    
-    # query for the Social category
-    # 'category:social' is the Gmail search operator for the Social tab
-    query = 'category:social'
-    
+        
     # List messages (Gmail returns these in reverse chronological order by default)
-    results = service.users().messages().list(userId='me', q=query).execute()
+    results = service.users().messages().list(userId='me', q=category).execute()
     messages = results.get('messages', [])
 
     result = []
@@ -80,7 +76,7 @@ def iterate_social_tab():
         
 
 if __name__ == '__main__':
-    emails = iterate_social_tab()
+    emails = getEmailList('category:social')
     for e in emails:
         print(e)
 
