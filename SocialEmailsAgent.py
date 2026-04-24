@@ -29,7 +29,7 @@ class EmailMessage:
         result += " from: "    + self.sender
         result += " subject: " + self.subject
         return result
-        
+
 
 
 def isRelevant(topic):
@@ -84,18 +84,35 @@ def getEmailList(category):
 
 
 def sendEmail(emailList, isrelevant):
+
+    numEmails = str(len(emailList))
     
-    msg = MIMEMultipart()
+    msg = MIMEMultipart("alternative")
     msg['From']    = "a.dan.brand@gmail.com"
     msg['To']      = "a.dan.brand@gmail.com"
     msg['Subject'] = "Social Emails"
-        
-    body = "Received " + str(len(emailList)) + " social emails\n\n"
+
+    body = f"""
+    <html>
+      <body>
+        <p>
+          Received {numEmails} social emails
+    """
+
     for e in emailList:
         if (isRelevant(e.subject)):
-            body += e.subject + "\n"
+            body += f"""<p>{e.subject}<br>
+                        <a href=https://mail.google.com/mail/u/0/#inbox/{e.id}</a>
+            """
             
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    body += f"""
+        </p>
+      </body>
+    </html>
+    """
+    print(body)
+        
+    msg.attach(MIMEText(body, 'html', 'utf-8'))
 
 
     try:
