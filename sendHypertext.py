@@ -4,9 +4,9 @@ from email.mime.multipart import MIMEMultipart
 
 def send_link_email(target_msg_id):
     # --- Configuration ---
-    sender_email = "your_email@gmail.com"
-    receiver_email = "your_email@gmail.com"
-    password = "your_app_password"
+    sender_email = "a.dan.brand@gmail.com"
+    receiver_email = "a.dan.brand@gmail.com"
+    password = "zxyf xhra flki fjsd"  # App Password, not login password
     
     # Construct the direct Gmail link
     gmail_link = f"https://mail.google.com/mail/u/0/#inbox/{target_msg_id}"
