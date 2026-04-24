@@ -85,7 +85,20 @@ def getEmailList(category):
 
 def sendEmail(emailList, isrelevant):
 
-    numEmails = str(len(emailList))
+    relevant      = "<p>RELEVANT EMAILS:<br>"
+    irrelevant    = "<p>IRRELEVANT EMAILS:<br>"    
+    numRelevant   = 0
+    numIrrelevant = 0
+    
+    for e in emailList:
+        ref = f"<a href=https://mail.google.com/mail/u/0/#inbox/{e.id}>{e.subject}</a><br>"
+        if (isRelevant(e.subject)):
+            relevant      += ref
+            numRelevant   += 1
+        else:
+            irrelevant    += ref
+            numIrrelevant += 1
+            
     
     msg = MIMEMultipart("alternative")
     msg['From']    = "a.dan.brand@gmail.com"
@@ -95,23 +108,14 @@ def sendEmail(emailList, isrelevant):
     body = f"""
     <html>
       <body>
-        <p>
-          Received {numEmails} social emails
-    """
-
-    for e in emailList:
-        if (isRelevant(e.subject)):
-            body += f"""<p>{e.subject}<br>
-                        <a href=https://mail.google.com/mail/u/0/#inbox/{e.id}</a>
-            """
-            
-    body += f"""
+         Received {numRelevant} relevant and {numIrrelevant} irrelevant social emails.
+         {relevant}
+         {irrelevant}    
         </p>
       </body>
     </html>
     """
-    print(body)
-        
+            
     msg.attach(MIMEText(body, 'html', 'utf-8'))
 
 
