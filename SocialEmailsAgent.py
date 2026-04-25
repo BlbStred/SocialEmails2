@@ -128,7 +128,7 @@ def sendEmail(emailList, isrelevant):
     numIrrelevant = 0
     
     for e in emailList:
-        ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id}>
+        ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
                 {e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
                 </a><br>
         """
