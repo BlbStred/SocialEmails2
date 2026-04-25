@@ -40,24 +40,24 @@ class EmailId:
     idFileName = "latest_id.txt"
 
     def __init__(self):
-        self.alreadyWritten = False
+        self.firstTime = True
     
-    def read(self):
-        try:
-            with open(EmailId.idFileName, "r") as file:
-                return file.readline().split()[0]
-        except:
-            return ""
 
-    def write(self, emailId):
-        if self.alreadyWritten:
-            return
-        self.alreadyWritten = True
-        
-        with open(EmailId.idFileName, "w") as file:
-            file.write(emailId + " is the most recent email id already processed")
-        
+    def processed(self, emailId):
+        if self.firstTime:
+            self.firstTime = False
+            
+            try:
+                with open(EmailId.idFileName, "r") as file:
+                    self.prevId = file.readline().split()[0]
+            except:
+                self.prevId     = ""        
 
+            with open(EmailId.idFileName, "w") as file:
+                file.write(emailId + " is the most recent email id already processed")
+            
+
+        return emailId == self.prevId
 
         
 def isRelevant(topic):
@@ -87,8 +87,7 @@ def get_gmail_service():
 def getEmailList(category):
     # Get previously processed email id
     idService  = EmailId()
-    prevId = idService.read()
-    
+        
     service = get_gmail_service()
     
     # List messages (Gmail returns these in reverse chronological order by default)
@@ -99,9 +98,8 @@ def getEmailList(category):
     for msg in messages:
         # Check whether precessed previously
         msgId = msg['id']
-        if msgId == prevId: break          # reached as far as last time
-        idService.write(msgId)             # record in a file, if this is the most recent
-        
+        if idService.processed(msgId): break          # reached as far as last time
+                
         # msg provides id only, fetch full message details
         message = service.users().messages().get(userId='me', id=msgId).execute()
         
