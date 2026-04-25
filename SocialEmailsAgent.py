@@ -60,9 +60,6 @@ class EmailId:
         return emailId == self.prevId
 
         
-def isRelevant(topic):
-    return "new invitation" in topic
-        
 
 def get_gmail_service():
     
@@ -84,14 +81,24 @@ def get_gmail_service():
 
 
 
-def getEmailList(category):
-    # Get previously processed email id
-    idService  = EmailId()
+#######################################
+# SERVICES
+#######################################
         
-    service = get_gmail_service()
+gmailService = get_gmail_service() # To access gmail
+idService  = EmailId()             # To check if email id previously processed
+        
+
+    
+def isRelevant(topic):
+    return "new invitation" in topic
+
+
+
+def getEmailList(category):
     
     # List messages (Gmail returns these in reverse chronological order by default)
-    results = service.users().messages().list(userId='me', q=category).execute()
+    results = gmailService.users().messages().list(userId='me', q=category).execute()
     messages = results.get('messages', [])
 
     result = []          # accumulates list of EmailMessages
@@ -101,7 +108,7 @@ def getEmailList(category):
         if idService.processed(msgId): break          # reached as far as last time
                 
         # msg provides id only, fetch full message details
-        message = service.users().messages().get(userId='me', id=msgId).execute()
+        message = gmailService.users().messages().get(userId='me', id=msgId).execute()
         
         # Extract headers for display
         payload = message.get('payload', {})
