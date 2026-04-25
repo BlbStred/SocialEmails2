@@ -35,6 +35,31 @@ class EmailMessage:
 
 
 
+class EmailId:
+    # Get the most recent id already processed previously
+    idFileName = "latest_id.txt"
+
+    def __init__(self):
+        self.alreadyWritten = False
+    
+    def read(self):
+        try:
+            with open(EmailId.idFileName, "r") as file:
+                return file.readline().split()[0]
+        except:
+            return ""
+
+    def write(self, emailId):
+        if self.alreadyWritten:
+            return
+        self.alreadyWritten = True
+        
+        with open(EmailId.idFileName, "w") as file:
+            file.write(emailId + " is the most recent email id already processed")
+        
+
+
+        
 def isRelevant(topic):
     return "new invitation" in topic
         
@@ -60,16 +85,25 @@ def get_gmail_service():
 
 
 def getEmailList(category):
+    # Get previously processed email id
+    idService  = EmailId()
+    prevId = idService.read()
+    
     service = get_gmail_service()
     
     # List messages (Gmail returns these in reverse chronological order by default)
     results = service.users().messages().list(userId='me', q=category).execute()
     messages = results.get('messages', [])
 
-    result = []
+    result = []          # accumulates list of EmailMessages
     for msg in messages:
+        # Check whether precessed previously
+        msgId = msg['id']
+        if msgId == prevId: break          # reached as far as last time
+        idService.write(msgId)             # record in a file, if this is the most recent
+        
         # msg provides id only, fetch full message details
-        message = service.users().messages().get(userId='me', id=msg['id']).execute()
+        message = service.users().messages().get(userId='me', id=msgId).execute()
         
         # Extract headers for display
         payload = message.get('payload', {})
@@ -82,7 +116,7 @@ def getEmailList(category):
         date    = next((h['value'] for h in headers if h['name'] == 'Date'),    'Unknown Date')
         date    = re.split(r'[+-]', date)[0]
 
-        result.append(EmailMessage(msg['id'], sender, subject, date))
+        result.append(EmailMessage(msgId, sender, subject, date))
 
     return result
 
