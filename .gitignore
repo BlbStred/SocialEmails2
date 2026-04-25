@@ -6,6 +6,7 @@
 # App
 token.json
 credentials.json
+latest_id.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
