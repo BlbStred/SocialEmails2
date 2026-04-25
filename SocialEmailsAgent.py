@@ -1,4 +1,5 @@
 import os
+import re
 import os.path
 import sys
 from google.auth.transport.requests import Request
@@ -19,15 +20,17 @@ sys.stdout.reconfigure(errors='replace')
 
 
 class EmailMessage:
-    def __init__(self, id, sender, subject):
+    def __init__(self, id, sender, subject, date):
         self.id      = str(id)
         self.sender  = str(sender)
         self.subject = str(subject)
+        self.date    = str(date)        
 
     def __str__(self):
         result  =                self.id
         result += " from: "    + self.sender
         result += " subject: " + self.subject
+        result += " date0: "   + self.date        
         return result
 
 
@@ -76,8 +79,10 @@ def getEmailList(category):
         # To get the subject, for example, find the first dictionary {'name: 'Subject', 'value': ...}
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
         sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
+        date    = next((h['value'] for h in headers if h['name'] == 'Date'),    'Unknown Date')
+        date    = re.split(r'[+-]', date)[0]
 
-        result.append(EmailMessage(msg['id'], sender, subject))
+        result.append(EmailMessage(msg['id'], sender, subject, date))
 
     return result
 
@@ -91,7 +96,11 @@ def sendEmail(emailList, isrelevant):
     numIrrelevant = 0
     
     for e in emailList:
-        ref = f"<a href=https://mail.google.com/mail/u/0/#inbox/{e.id}>{e.subject}</a><br>"
+        ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id}>
+                {e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
+                </a><br>
+        """
+        
         if (isRelevant(e.subject)):
             relevant      += ref
             numRelevant   += 1
