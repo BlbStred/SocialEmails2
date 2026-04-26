@@ -12,7 +12,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# Load environmet variables from .env
+# Load environment variables from .env
 load_dotenv()
 
 # Reconfigure stdout to handle errors gracefully
@@ -40,13 +40,15 @@ class EmailId:
     idFileName = "latest_id.txt"
 
     def __init__(self):
-        self.firstTime = True
-    
+        self.prevId = None
+
+    # First time processed() invoked, it will be with the most recent emailId
+    # Save the previous one from idFileName in self.prevId
+    # Store that new given emailId in the file
 
     def processed(self, emailId):
-        if self.firstTime:
-            self.firstTime = False
-            
+        if self.prevId == None:
+                        
             try:
                 with open(EmailId.idFileName, "r") as file:
                     self.prevId = file.readline().split()[0]
