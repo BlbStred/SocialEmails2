@@ -201,8 +201,8 @@ def sendEmail(emailList, isrelevant):
             
     
     msg = MIMEMultipart("alternative")
-    msg['From']    = "a.dan.brand@gmail.com"
-    msg['To']      = "a.dan.brand@gmail.com"
+    msg['From']    = os.environ.get("MY_GMAIL_ADDRESS")
+    msg['To']      = os.environ.get("MY_GMAIL_ADDRESS")
     msg['Subject'] = "Social Emails"
 
     body = f"""
@@ -225,8 +225,8 @@ def sendEmail(emailList, isrelevant):
         # For Outlook: smtp.office365.com | Port: 587
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()  # Secure the connection
-        server.login("a.dan.brand@gmail.com",
-                     "zxyf xhra flki fjsd")  # App Password, not login password
+        server.login(os.environ.get("MY_GMAIL_ADDRESS"),
+                     os.environ.get("MY_GMAIL_APP_PASSWORD"))  # App Password, not login password
         server.send_message(msg)
         
     except Exception as e:
