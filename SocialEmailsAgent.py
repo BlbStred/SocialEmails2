@@ -87,11 +87,63 @@ def get_gmail_service():
         
 gmailService = get_gmail_service() # To access gmail
 idService  = EmailId()             # To check if email id previously processed
+aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+
+def analyze_comment(input_text):
+    print(f"--- Analyzing: {input_text[:50]}... ---")
+    
+    try:
+        # 2. The Request
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a classifier. Answer 'YES' if the text is a comment on something, and 'NO' if it is not. Provide a brief reason."},
+                {"role": "user", "content": input_text}
+            ]
+        )
         
+        result = response.choices[0].message.content
+        
+        # 3. Defensive Printing 
+        # Using .encode().decode() handles any stray characters like \u034f
+        clean_result = result.encode('ascii', 'replace').decode('ascii')
+        print(f"Result: {clean_result}")
+
+    except Exception as e:
+        # This catches API errors, connection issues, or encoding bugs
+        print(f"An error occurred, but we're skipping it: {e}")
+
 
     
 def isRelevant(topic):
-    return "new invitation" in topic
+    
+    try:
+        # 2. The Request
+        response = aiService.chat.completions.create(
+            model="gpt-4o",
+            seed=42,
+            messages=[
+                {"role": "system", "content": "You are a classifier. Answer 'YES' if the text mentions an invitation, and 'NO' if it does not. Provide a brief reason."},
+                {"role": "user", "content": topic}
+            ]
+        )
+        
+        result = response.choices[0].message.content
+        
+        # 3. Defensive Printing 
+        # Using .encode().decode() handles any stray characters like \u034f
+        clean_result = result.encode('ascii', 'replace').decode('ascii')
+        print(topic, f"Result: {clean_result}")
+
+    except Exception as e:
+        # This catches API errors, connection issues, or encoding bugs
+        print(f"An error occurred, but we're skipping it: {e}")
+        result = ''
+
+    answer = result.split()[0]
+    print(answer)
+    return answer == 'YES'
 
 
 
