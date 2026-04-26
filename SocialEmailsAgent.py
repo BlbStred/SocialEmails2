@@ -100,7 +100,8 @@ def relevance(topic):
         # 2. The Request
         response = aiService.chat.completions.create(
             model="gpt-4o",
-            seed=42,
+            seed=42,         # for determinism
+            temperature=0,   # otherwise makes wrong decision with no reason
             messages=[
                 {"role"    : "system",
                  "content" : """You are a classifier.
