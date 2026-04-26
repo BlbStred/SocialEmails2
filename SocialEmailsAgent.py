@@ -90,33 +90,9 @@ idService  = EmailId()             # To check if email id previously processed
 aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
-def analyze_comment(input_text):
-    print(f"--- Analyzing: {input_text[:50]}... ---")
-    
-    try:
-        # 2. The Request
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are a classifier. Answer 'YES' if the text is a comment on something, and 'NO' if it is not. Provide a brief reason."},
-                {"role": "user", "content": input_text}
-            ]
-        )
-        
-        result = response.choices[0].message.content
-        
-        # 3. Defensive Printing 
-        # Using .encode().decode() handles any stray characters like \u034f
-        clean_result = result.encode('ascii', 'replace').decode('ascii')
-        print(f"Result: {clean_result}")
-
-    except Exception as e:
-        # This catches API errors, connection issues, or encoding bugs
-        print(f"An error occurred, but we're skipping it: {e}")
-
 
     
-def isRelevant(topic):
+def relevance(topic):
     
     try:
         # 2. The Request
@@ -124,7 +100,20 @@ def isRelevant(topic):
             model="gpt-4o",
             seed=42,
             messages=[
-                {"role": "system", "content": "You are a classifier. Answer 'YES' if the text mentions an invitation, and 'NO' if it does not. Provide a brief reason."},
+                {"role"    : "system",
+                 "content" : """You are a classifier.
+                 Answer 'YES' if the user's text is relevant,
+                 answer 'NO' if it is not relevant,
+                 answer 'UNSURE' if you are not sure.
+                 Provide a brief reason.
+                 If the text talks about somebody merely commenting on something, then it is not relevant.
+                 If the text informs me of a new message, searches, job availability, noticing me, or invitation
+                 then it is not relevant.
+                 Somebody posting on my profile is always relevant.
+                 Somebody posting on somebody else's profile is not relevant.                 
+                 If the text mentions Stephen Edwards then it is relevant.
+                 If the text mentions Hsin Yi Chen then it is not relevant."""},
+                
                 {"role": "user", "content": topic}
             ]
         )
@@ -143,7 +132,7 @@ def isRelevant(topic):
 
     answer = result.split()[0]
     print(answer)
-    return answer == 'YES'
+    return answer
 
 
 
@@ -179,25 +168,26 @@ def getEmailList(category):
 
 
 
-def sendEmail(emailList, isrelevant):
+def sendEmail(emailList, relevance):
 
     relevant      = "<p>RELEVANT EMAILS:<br>"
-    irrelevant    = "<p>IRRELEVANT EMAILS:<br>"    
+    irrelevant    = "<p>IRRELEVANT EMAILS:<br>"
+    unsure        = "<p>UNSURE ABOUT:<br>"        
     numRelevant   = 0
     numIrrelevant = 0
+    numUnsure     = 0    
     
     for e in emailList:
         ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
                 {e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
                 </a><br>
         """
-        
-        if (isRelevant(e.subject)):
-            relevant      += ref
-            numRelevant   += 1
-        else:
-            irrelevant    += ref
-            numIrrelevant += 1
+
+        match relevance(e.subject):
+            case 'YES':    relevant += ref; numRelevant   += 1
+            case 'NO':   irrelevant += ref; numIrrelevant += 1
+            case 'UNSURE': unsure   += ref; numUnsure     += 1                
+            case _:        print("*** ERROR ***: Unknown relevance:", relevance(e.subject))
             
     
     msg = MIMEMultipart("alternative")
@@ -208,9 +198,11 @@ def sendEmail(emailList, isrelevant):
     body = f"""
     <html>
       <body>
-         Received {numRelevant} relevant and {numIrrelevant} irrelevant social emails.
+         Received {numRelevant} relevant, {numIrrelevant} irrelevant social emails,
+         and unsure about {numUnsure}.
          {relevant}
-         {irrelevant}    
+         {irrelevant}
+         {unsure}
         </p>
       </body>
     </html>
@@ -240,6 +232,6 @@ def sendEmail(emailList, isrelevant):
 
 if __name__ == '__main__':
     emails = getEmailList('category:social')
-    sendEmail(emails, isRelevant)
+    sendEmail(emails, relevance)
     
 
