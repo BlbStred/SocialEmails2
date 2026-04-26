@@ -127,7 +127,7 @@ def relevance(topic):
 
     except Exception as e:
         # This catches API errors, connection issues, or encoding bugs
-        print(f"*** ERROR : {e}")
+        print(f"*** ERROR *** : {e}")
         return 'UNSURE'
 
     
@@ -141,7 +141,7 @@ def getEmailList(category):
     results = gmailService.users().messages().list(userId='me', q=category).execute()
     messages = results.get('messages', [])
 
-    result = []          # accumulates list of EmailMessages
+    emailList = []          # the list to return
     for msg in messages:
         # Check whether precessed previously
         msgId = msg['id']
@@ -150,7 +150,7 @@ def getEmailList(category):
         # msg provides id only, fetch full message details
         message = gmailService.users().messages().get(userId='me', id=msgId).execute()
         
-        # Extract headers for display
+        # Extract headers 
         payload = message.get('payload', {})
         headers = payload.get('headers', [])
         
@@ -159,14 +159,14 @@ def getEmailList(category):
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
         sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
         date    = next((h['value'] for h in headers if h['name'] == 'Date'),    'Unknown Date')
-        date    = re.split(r'[+-]', date)[0]
+        date    = re.split(r'[+-]', date)[0]     # Get rid of the universal time at the end
 
-        result.append(EmailMessage(msgId, sender, subject, date))
+        emailList.append(EmailMessage(msgId, sender, subject, date))
 
-    return result
+    return emailList
 
 
-
+# Format the summary email nad send it to myself
 def sendEmail(emailList, relevance):
 
     relevant      = "<p>RELEVANT EMAILS:<br>"
@@ -177,6 +177,8 @@ def sendEmail(emailList, relevance):
     numUnsure     = 0    
     
     for e in emailList:
+
+        # Prepare the reference link, that will be followed without overtaking the email
         ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
                 {e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
                 </a><br>
@@ -186,9 +188,14 @@ def sendEmail(emailList, relevance):
             case 'YES':    relevant += ref; numRelevant   += 1
             case 'NO':   irrelevant += ref; numIrrelevant += 1
             case 'UNSURE': unsure   += ref; numUnsure     += 1                
-            case _:        print("*** ERROR ***: Unknown relevance:", relevance(e.subject))
-            
-    
+            case _:        print("*** ERROR *** : Unknown relevance:", relevance(e.subject))
+
+    # Avoid displaying empty lists
+    if numRelevant   == 0: relevant   = ""
+    if numIrrelevant == 0: irrelevant = ""
+    if numUnsure     == 0: unsure     = ""        
+
+    # Setup the summary email
     msg = MIMEMultipart("alternative")
     msg['From']    = os.environ.get("MY_GMAIL_ADDRESS")
     msg['To']      = os.environ.get("MY_GMAIL_ADDRESS")
@@ -221,7 +228,7 @@ def sendEmail(emailList, relevance):
         server.send_message(msg)
         
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"*** Error *** : {e}")
     
     finally:
         server.quit()
