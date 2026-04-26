@@ -93,11 +93,11 @@ aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 
-    
+# Return YES, NO, UNSURE depending on AI's classification of the given topic
 def relevance(topic):
     
     try:
-        # 2. The Request
+        # The Request
         response = aiService.chat.completions.create(
             model="gpt-4o",
             seed=42,         # for determinism
@@ -122,20 +122,16 @@ def relevance(topic):
         )
         
         result = response.choices[0].message.content
-        
-        # 3. Defensive Printing 
-        # Using .encode().decode() handles any stray characters like \u034f
-        clean_result = result.encode('ascii', 'replace').decode('ascii')
-        print(topic, f"Result: {clean_result}")
+        print(topic, " --> ", result)
+        return result.split()[0]  # YES, NO, UNSURE is the first word
 
     except Exception as e:
         # This catches API errors, connection issues, or encoding bugs
-        print(f"An error occurred, but we're skipping it: {e}")
-        result = ''
+        print(f"*** ERROR : {e}")
+        return 'UNSURE'
 
-    answer = result.split()[0]
-    print(answer)
-    return answer
+    
+    
 
 
 
