@@ -36,26 +36,25 @@ class EmailMessage:
 
 
 class EmailId:
-    # Get the most recent id already processed previously
-    idFileName = "latest_id.txt"
-
-    def __init__(self):
-        self.prevId = None
+    
+    def __init__(self, category):
+        self.prevId   = None                       # the most recent id already processed previously
+        self.fileName = "latest_"+category+".txt"  # where saved
 
     # First time processed() invoked, it will be with the most recent emailId
-    # Save the previous one from idFileName in self.prevId
+    # Save the previous one from fileName in self.prevId
     # Store that new given emailId in the file
 
     def processed(self, emailId):
         if self.prevId == None:
                         
             try:
-                with open(EmailId.idFileName, "r") as file:
+                with open(self.fileName, "r") as file:
                     self.prevId = file.readline().split()[0]
             except:
                 self.prevId     = ""        
 
-            with open(EmailId.idFileName, "w") as file:
+            with open(self.fileName, "w") as file:
                 file.write(emailId + " is the most recent email id already processed")
             
 
@@ -88,7 +87,9 @@ def get_gmail_service():
 #######################################
         
 gmailService = get_gmail_service() # To access gmail
-idService  = EmailId()             # To check if email id previously processed
+idService  = {"promotions" : EmailId("promotions"),  # To check if email id previously processed
+              "social"     : EmailId("social"),
+              "updates"    : EmailId("updates")}
 aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
@@ -138,14 +139,14 @@ def relevance(topic):
 def getEmailList(category):
     
     # List messages (Gmail returns these in reverse chronological order by default)
-    results = gmailService.users().messages().list(userId='me', q=category).execute()
+    results = gmailService.users().messages().list(userId='me', q='category:'+category).execute()
     messages = results.get('messages', [])
 
     emailList = []          # the list to return
     for msg in messages:
         # Check whether precessed previously
         msgId = msg['id']
-        if idService.processed(msgId): break          # reached as far as last time
+        if idService[category].processed(msgId): break          # reached as far as last time
                 
         # msg provides id only, fetch full message details
         message = gmailService.users().messages().get(userId='me', id=msgId).execute()
@@ -237,7 +238,7 @@ def sendEmail(emailList, relevance):
 
 
 if __name__ == '__main__':
-    emails = getEmailList('category:social')
+    emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
     sendEmail(emails, relevance)
     
 
