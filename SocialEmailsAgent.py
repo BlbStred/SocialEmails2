@@ -141,7 +141,8 @@ def relevance(topic):
 def getEmailList(category):
     
     # List messages (Gmail returns these in reverse chronological order by default)
-    results = gmailService.users().messages().list(userId='me', q='category:'+category).execute()
+    results = gmailService.users().messages().list(userId='me',
+                                                   q=f"category:{category} label:inbox").execute()
     messages = results.get('messages', [])
 
     emailList = []          # the list to return
@@ -183,7 +184,7 @@ def sendEmail(emailList, relevance):
 
         # Prepare the reference link, that will be followed without overtaking the email
         ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
-                {e.category}&nbsp;has&nbsp;{e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
+                {e.category}&nbsp;from&nbsp;{e.sender}&nbsp;{e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
                 </a><br>
         """
 
