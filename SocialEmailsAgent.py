@@ -20,17 +20,19 @@ sys.stdout.reconfigure(errors='replace')
 
 
 class EmailMessage:
-    def __init__(self, id, sender, subject, date):
+    def __init__(self, id, sender, subject, date, category):
         self.id      = str(id)
         self.sender  = str(sender)
         self.subject = str(subject)
-        self.date    = str(date)        
+        self.date    = str(date)
+        self.category= str(category)                
 
     def __str__(self):
         result  =                self.id
         result += " from: "    + self.sender
         result += " subject: " + self.subject
-        result += " date0: "   + self.date        
+        result += " date0: "   + self.date
+        result += " in: "      + self.category                
         return result
 
 
@@ -162,7 +164,7 @@ def getEmailList(category):
         date    = next((h['value'] for h in headers if h['name'] == 'Date'),    'Unknown Date')
         date    = re.split(r'[+-]', date)[0]     # Get rid of the universal time at the end
 
-        emailList.append(EmailMessage(msgId, sender, subject, date))
+        emailList.append(EmailMessage(msgId, sender, subject, date, category))
 
     return emailList
 
@@ -181,7 +183,7 @@ def sendEmail(emailList, relevance):
 
         # Prepare the reference link, that will be followed without overtaking the email
         ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
-                {e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
+                {e.category}&nbsp;has&nbsp;{e.date}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{e.subject}
                 </a><br>
         """
 
