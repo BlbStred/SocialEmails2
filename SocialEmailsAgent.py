@@ -176,8 +176,8 @@ def getEmailList(category):
 def sendEmail(emailList, relevance):
 
     relevant      = "<p>RELEVANT EMAILS:<br>"
-    irrelevant    = "<p>IRRELEVANT EMAILS:<br>"
     unsure        = "<p>UNSURE ABOUT:<br>"        
+    irrelevant    = "<p>IRRELEVANT EMAILS:<br>"
     numRelevant   = 0
     numIrrelevant = 0
     numUnsure     = 0    
@@ -213,8 +213,8 @@ def sendEmail(emailList, relevance):
          Received {numRelevant} relevant, {numIrrelevant} irrelevant social emails,
          and unsure about {numUnsure}.
          {relevant}
-         {irrelevant}
          {unsure}
+         {irrelevant}
         </p>
       </body>
     </html>
