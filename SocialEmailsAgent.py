@@ -244,17 +244,16 @@ def sendSocialEmail(emailList, relevance):
 
 
 def apartments():
-    return ("Windward passage apartments",
-            
-            f"""
-            <html>
-              <body>
-                Changes at Windward Passage:<br>
-                </p>
-              </body>
-            </html>
-            """
-            )
+    return (
+        f"""
+        <html>
+          <body>
+            Changes at Windward Passage:<br>
+            </p>
+          </body>
+        </html>
+        """
+    )
 
 
 # Format the summary email and send it to myself
@@ -292,6 +291,5 @@ if __name__ == '__main__':
     emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
     sendSocialEmail(emails, relevance)
     
-    (subject, body) = apartments()
-    sendEmail(subject, body)
+    sendEmail("Windward passage apartments",  apartments())
 
