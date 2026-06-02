@@ -115,8 +115,10 @@ def relevance(topic):
                  If the text talks about somebody merely commenting on something, then it is not relevant.
                  If the text informs me of a new message, searches, job availability, noticing me, or invitation
                  then it is not relevant.
+                 Any kind of bank statement is relevant.
                  Any news item or public anouncement is not relevant.
                  Any offer of savings or advice is not relevant.
+                 Anything designed to draw a person's attention without saying what it is about is not relevant.
                  Somebody posting on my profile is always relevant.
                  Somebody posting on somebody else's profile is not relevant.                 
                  If the text mentions Stephen Edwards then it is relevant.
