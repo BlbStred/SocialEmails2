@@ -96,6 +96,11 @@ aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 
+#######################################
+# SOCIAL EMAILS
+#######################################
+
+
 # Return YES, NO, UNSURE depending on AI's classification of the given topic
 def relevance(topic):
     
@@ -138,9 +143,6 @@ def relevance(topic):
         return 'UNSURE'
 
     
-    
-
-
 
 def getEmailList(category):
     
@@ -175,7 +177,7 @@ def getEmailList(category):
 
 
 # Format the summary email and send it to myself
-def sendSocialEmail(emailList, relevance):
+def socialEmails(emailList, relevance):
 
     relevant      = "<p>RELEVANT EMAILS:<br>"
     unsure        = "<p>UNSURE ABOUT:<br>"        
@@ -203,58 +205,92 @@ def sendSocialEmail(emailList, relevance):
     if numIrrelevant == 0: irrelevant = ""
     if numUnsure     == 0: unsure     = ""        
 
-    # Setup the summary email
-    msg = MIMEMultipart("alternative")
-    msg['From']    = os.environ.get("MY_GMAIL_ADDRESS")
-    msg['To']      = os.environ.get("MY_GMAIL_ADDRESS")
-    msg['Subject'] = "Social Emails"
-
-    body = f"""
-    <html>
-      <body>
-         Received {numRelevant} relevant, {numIrrelevant} irrelevant social emails,
-         and unsure about {numUnsure}.
-         {relevant}
-         {unsure}
-         {irrelevant}
-        </p>
-      </body>
-    </html>
-    """
-            
-    msg.attach(MIMEText(body, 'html', 'utf-8'))
+    return (
+        f"""
+        <html>
+          <body>
+            Received {numRelevant} relevant, {numIrrelevant} irrelevant social emails,
+            and unsure about {numUnsure}.
+            {relevant}
+            {unsure}
+            {irrelevant}
+            </p>
+         </body>
+       </html>
+       """
+      )      
 
 
-    try:
-        # --- Connecting to Server ---
-        # For Gmail: smtp.gmail.com | Port: 587
-        # For Outlook: smtp.office365.com | Port: 587
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()  # Secure the connection
-        server.login(os.environ.get("MY_GMAIL_ADDRESS"),
-                     os.environ.get("MY_GMAIL_APP_PASSWORD"))  # App Password, not login password
-        server.send_message(msg)
-        
-    except Exception as e:
-        print(f"*** Error *** : {e}")
     
-    finally:
-        server.quit()
 
+#######################################
+# REAL ESTATE
+#######################################
+# OpenAI unwilling to check websites
+
+
+def changesAtWP(prev):
+    
+    try:
+        # The Request
+        response = aiService.chat.completions.create(
+            model="gpt-4o",
+            seed=42,         # for determinism
+            temperature=0,   # otherwise makes wrong decision with no reason
+            messages=[
+                
+                {"role"    : "system",
+                 "content" : """You are a real estate agent at Windward Passage, Kailua, HI.
+                 You obtain information from the web, and list the web pages consulted.
+                 You respond with the status of apartments on the market there.
+                 The status of an apartment on the market is:
+                 asking price, whether it is contingent, and whether it has an open house.
+                 Answer 'NO CHANGE' if there is no change since your last reponse.
+                 Otherwise list the changes, and provide the status of all the apartments on the market."""
+                 },
+                {"role" : "assistant",
+                 "content" : prev
+                 },
+                
+                {"role": "user",
+                 "content": "status of apartments for sale at Windward Passage, Kailua, HI"
+                 }
+            ]
+        )
+        
+        result = response.choices[0].message.content
+        print(result)
+        return result
+
+    except Exception as e:
+        # This catches API errors, connection issues, or encoding bugs
+        print(f"*** ERROR *** : {e}")
+        return 'ERROR'
+
+    
+    
 
 
 def apartments():
+    prev = "NO CHANGE"
+    response = changesAtWP(prev)
+    
     return (
         f"""
         <html>
           <body>
             Changes at Windward Passage:<br>
+            {response}
             </p>
           </body>
         </html>
         """
     )
 
+
+#######################################
+# COMMON
+#######################################
 
 # Format the summary email and send it to myself
 def sendEmail(subject, body):
@@ -288,8 +324,14 @@ def sendEmail(subject, body):
 
 
 if __name__ == '__main__':
-    emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
-    sendSocialEmail(emails, relevance)
     
-    sendEmail("Windward passage apartments",  apartments())
+    emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
+    sendEmail("Social emails",
+              socialEmails(emails, relevance))
+    
 
+    # Disabled because OpenAI will consult the web
+    """
+    sendEmail("Windward passage apartments",
+              apartments())
+    """
