@@ -1,3 +1,18 @@
+# When gmail autorization expires:
+#
+# 1 regenerate token.json
+# 1.1 delete token.json
+# 1.2 python SocialEmailsAgent.py
+# 1.3 Google will open a warning window
+# 1.4 Do not go to safety -- click on "advanced"
+# 1.5 Do what they label as unsafe
+#
+# 2. regenerate MY_GMAIL_APP_PASSWORD in .env
+# 2.1 go to myaccount.google.com/apppasswords
+
+
+
+
 import os
 import re
 import os.path
@@ -59,7 +74,6 @@ class EmailId:
             with open(self.fileName, "w") as file:
                 file.write(emailId + " is the most recent email id already processed")
             
-
         return emailId == self.prevId
 
         
@@ -121,6 +135,7 @@ def relevance(topic):
                  If the text informs me of a new message, searches, job availability, noticing me, or invitation
                  then it is not relevant.
                  Any kind of bank statement is relevant.
+                 Anything concerning security is relevant.                 
                  Any news item or public anouncement is not relevant.
                  Any offer of savings or advice is not relevant.
                  Anything designed to draw a person's attention without saying what it is about is not relevant.
