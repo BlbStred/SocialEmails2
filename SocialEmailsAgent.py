@@ -36,7 +36,7 @@ sys.stdout.reconfigure(errors='replace')
 
 
 #######################################
-# SERVICES
+# GMAIL SERVICES
 #######################################
         
 
@@ -61,7 +61,7 @@ def get_gmail_service():
 
 
 gmailService = get_gmail_service() # To access gmail
-aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
 
 
 
@@ -115,6 +115,10 @@ def getEmailIdList(category):
 
 
 
+#######################################
+# MY SERVICES
+#######################################
+
 class EmailMessage:
     def __init__(self, id, sender, subject, date, category):
         self.id      = str(id)
@@ -164,9 +168,11 @@ class EmailId:
 
 
 #######################################
-# SOCIAL EMAILS
+# AI SERVICES
 #######################################
 
+
+aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Return YES, NO, UNSURE depending on AI's classification of the given topic
 def relevance(topic):
@@ -211,6 +217,10 @@ def relevance(topic):
         return 'UNSURE'
 
     
+    
+#######################################
+# SOCIAL EMAILS
+#######################################
 
 # Format the summary email and send it to myself
 def socialEmails(emailList, relevance):
