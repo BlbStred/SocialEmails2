@@ -34,6 +34,87 @@ load_dotenv()
 sys.stdout.reconfigure(errors='replace')
 
 
+
+#######################################
+# SERVICES
+#######################################
+        
+
+def get_gmail_service():
+    
+    # If modifying these scopes, delete the file token.json.
+    SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    return build('gmail', 'v1', credentials=creds)
+
+
+
+gmailService = get_gmail_service() # To access gmail
+aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+
+
+
+def getEmailList(category):
+    
+    # List messages (Gmail returns these in reverse chronological order by default)
+    results = gmailService.users().messages().list(userId='me',
+                                                   q=f"category:{category} label:inbox").execute()
+    messages = results.get('messages', [])
+
+    emailList = []          # the list to return
+    for msg in messages:
+        # Check whether precessed previously
+        msgId = msg['id']
+        if idService[category].processed(msgId): break          # reached as far as last time
+                
+        # msg provides id only, fetch full message details
+        message = gmailService.users().messages().get(userId='me', id=msgId).execute()
+        
+        # Extract headers 
+        payload = message.get('payload', {})
+        headers = payload.get('headers', [])
+        
+        # headers is a list of dictionaries {'name: ..., 'value': ...}
+        # To get the subject, for example, find the first dictionary {'name: 'Subject', 'value': ...}
+        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
+        sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
+        date    = next((h['value'] for h in headers if h['name'] == 'Date'),    'Unknown Date')
+        date    = re.split(r'[+-]', date)[0]     # Get rid of the universal time at the end
+
+        emailList.append(EmailMessage(msgId, sender, subject, date, category))
+
+    return emailList
+
+
+
+def getEmailIdList(category):
+    
+    # List messages (Gmail returns these in reverse chronological order by default)
+    results = gmailService.users().messages().list(userId='me',
+                                                   q=f"category:{category} label:inbox").execute()
+    messages = results.get('messages', [])
+
+    emailList = []          # the list to return
+    for msg in messages:
+        emailList.append(msg['id'])
+
+    return emailList
+
+
+
+
 class EmailMessage:
     def __init__(self, id, sender, subject, date, category):
         self.id      = str(id)
@@ -53,6 +134,8 @@ class EmailMessage:
 
 
 class EmailId:
+
+    primaryIds = getEmailIdList("primary")
     
     def __init__(self, category):
         self.prevId   = None                       # the most recent id already processed previously
@@ -77,36 +160,6 @@ class EmailId:
         return emailId == self.prevId
 
         
-
-def get_gmail_service():
-    
-    # If modifying these scopes, delete the file token.json.
-    SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-
-    creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-    return build('gmail', 'v1', credentials=creds)
-
-
-
-#######################################
-# SERVICES
-#######################################
-        
-gmailService = get_gmail_service() # To access gmail
-idService  = {"promotions" : EmailId("promotions"),  # To check if email id previously processed
-              "social"     : EmailId("social"),
-              "updates"    : EmailId("updates")}
-aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 
@@ -158,38 +211,6 @@ def relevance(topic):
         return 'UNSURE'
 
     
-
-def getEmailList(category):
-    
-    # List messages (Gmail returns these in reverse chronological order by default)
-    results = gmailService.users().messages().list(userId='me',
-                                                   q=f"category:{category} label:inbox").execute()
-    messages = results.get('messages', [])
-
-    emailList = []          # the list to return
-    for msg in messages:
-        # Check whether precessed previously
-        msgId = msg['id']
-        if idService[category].processed(msgId): break          # reached as far as last time
-                
-        # msg provides id only, fetch full message details
-        message = gmailService.users().messages().get(userId='me', id=msgId).execute()
-        
-        # Extract headers 
-        payload = message.get('payload', {})
-        headers = payload.get('headers', [])
-        
-        # headers is a list of dictionaries {'name: ..., 'value': ...}
-        # To get the subject, for example, find the first dictionary {'name: 'Subject', 'value': ...}
-        subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
-        sender  = next((h['value'] for h in headers if h['name'] == 'From'),    'Unknown Sender')
-        date    = next((h['value'] for h in headers if h['name'] == 'Date'),    'Unknown Date')
-        date    = re.split(r'[+-]', date)[0]     # Get rid of the universal time at the end
-
-        emailList.append(EmailMessage(msgId, sender, subject, date, category))
-
-    return emailList
-
 
 # Format the summary email and send it to myself
 def socialEmails(emailList, relevance):
@@ -339,6 +360,10 @@ def sendEmail(subject, body):
 
 
 if __name__ == '__main__':
+
+    idService  = {"promotions" : EmailId("promotions"),  # To check if email id previously processed
+                  "social"     : EmailId("social"),
+                  "updates"    : EmailId("updates")}
     
     emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
     sendEmail("Social emails",
