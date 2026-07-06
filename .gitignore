@@ -9,6 +9,7 @@ credentials.json
 latest_updates.txt
 latest_social.txt
 latest_promotions.txt
+latest_primary.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
