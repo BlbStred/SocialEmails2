@@ -66,7 +66,7 @@ gmailService = get_gmail_service() # To access gmail
 
 
 
-def getEmailList(category):
+def getEmailList(category, ignoreIdList):
     
     # List messages (Gmail returns these in reverse chronological order by default)
     results = gmailService.users().messages().list(userId='me',
@@ -77,6 +77,10 @@ def getEmailList(category):
     for msg in messages:
         # Check whether precessed previously
         msgId = msg['id']
+        
+        if msgId in ignoreIdList:
+            continue
+        
         if idService[category].processed(msgId): break          # reached as far as last time
                 
         # msg provides id only, fetch full message details
@@ -151,7 +155,8 @@ class EmailId:
 
     def processed(self, emailId):
         if self.prevId == None:
-                        
+            # first time processed() called, whuch is the most recent id
+            # remember it, and record it in file
             try:
                 with open(self.fileName, "r") as file:
                     self.prevId = file.readline().split()[0]
@@ -223,7 +228,7 @@ def relevance(topic):
 #######################################
 
 # Format the summary email and send it to myself
-def socialEmails(emailList, ignoreIdList, relevance):
+def socialEmails(emailList, relevance):
 
     relevant      = "<p>RELEVANT EMAILS:<br>"
     unsure        = "<p>UNSURE ABOUT:<br>"        
@@ -233,9 +238,6 @@ def socialEmails(emailList, ignoreIdList, relevance):
     numUnsure     = 0    
     
     for e in emailList:
-
-        if e.id in ignoreIdList:
-            continue
 
         # Prepare the reference link, that will be followed without overtaking the email
         ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
@@ -378,9 +380,13 @@ if __name__ == '__main__':
                   "social"     : EmailId("social"),
                   "updates"    : EmailId("updates")}
     
-    emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
+    ignore = getEmailIdList('primary'),
+    emails =  (getEmailList('promotions', ignore) +
+               getEmailList('social',     ignore) +
+               getEmailList('updates',    ignore))
+    
     sendEmail("Social emails",
-              socialEmails(emails, getEmailIdList('primary'), relevance))
+              socialEmails(emails, relevance))
     
 
     # Disabled because OpenAI will consult the web
