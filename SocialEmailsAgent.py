@@ -223,7 +223,7 @@ def relevance(topic):
 #######################################
 
 # Format the summary email and send it to myself
-def socialEmails(emailList, relevance):
+def socialEmails(emailList, ignoreIdList, relevance):
 
     relevant      = "<p>RELEVANT EMAILS:<br>"
     unsure        = "<p>UNSURE ABOUT:<br>"        
@@ -233,6 +233,9 @@ def socialEmails(emailList, relevance):
     numUnsure     = 0    
     
     for e in emailList:
+
+        if e.id in ignoreIdList:
+            continue
 
         # Prepare the reference link, that will be followed without overtaking the email
         ref = f"""<a href=https://mail.google.com/mail/u/0/#inbox/{e.id} target="_blank" rel="noopener noreferrer">
@@ -377,7 +380,7 @@ if __name__ == '__main__':
     
     emails = getEmailList('promotions') + getEmailList('social') + getEmailList('updates')
     sendEmail("Social emails",
-              socialEmails(emails, relevance))
+              socialEmails(emails, getEmailIdList('primary'), relevance))
     
 
     # Disabled because OpenAI will consult the web
