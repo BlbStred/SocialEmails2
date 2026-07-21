@@ -180,6 +180,7 @@ class EmailId:
 aiService  = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Return YES, NO, UNSURE depending on AI's classification of the given topic
+# topic is typically the subject of an email
 def relevance(topic):
     
     try:
@@ -195,8 +196,10 @@ def relevance(topic):
                  answer 'NO' if it is not relevant,
                  answer 'UNSURE' if you are not sure.
                  Provide a brief reason.
-                 If the text talks about somebody merely commenting on something, then it is not relevant,
-                 unless it is from Stephen Edwards; his posts are always relevant.
+                 If the text talks about somebody merely commenting on something or reacting to something,
+                 then it is not relevant.
+                 But if somebody actually posts a social message himself then it is relevant;
+                 the exception is Hsin Yi Chen -- her posts are never relevant.
                  If the text informs me of a new message, searches, job availability, noticing me, or invitation
                  then it is not relevant.
                  Any kind of bank statement is relevant.
@@ -204,11 +207,10 @@ def relevance(topic):
                  Any news item or public anouncement is not relevant.
                  Any offer of savings or advice is not relevant.
                  Anything designed to draw a person's attention without saying what it is about is not relevant.
-                 Somebody posting on my profile is always relevant.
-                 Somebody posting on somebody else's profile is not relevant.                 
-                 If the text mentions Hsin Yi Chen then it is not relevant."""},
+                 """},
                 
-                {"role": "user", "content": topic}
+                {"role": "user",
+                 "content": topic}
             ]
         )
         
