@@ -77,10 +77,10 @@ def getEmailList(category, ignoreIdList):
     for msg in messages:
         # Check whether precessed previously
         msgId = msg['id']
-        
+
         if msgId in ignoreIdList:
             continue
-        
+
         if idService[category].processed(msgId): break          # reached as far as last time
                 
         # msg provides id only, fetch full message details
@@ -195,7 +195,8 @@ def relevance(topic):
                  answer 'NO' if it is not relevant,
                  answer 'UNSURE' if you are not sure.
                  Provide a brief reason.
-                 If the text talks about somebody merely commenting on something, then it is not relevant.
+                 If the text talks about somebody merely commenting on something, then it is not relevant,
+                 unless it is from Stephen Edwards; his posts are always relevant.
                  If the text informs me of a new message, searches, job availability, noticing me, or invitation
                  then it is not relevant.
                  Any kind of bank statement is relevant.
@@ -205,7 +206,6 @@ def relevance(topic):
                  Anything designed to draw a person's attention without saying what it is about is not relevant.
                  Somebody posting on my profile is always relevant.
                  Somebody posting on somebody else's profile is not relevant.                 
-                 If the text mentions Stephen Edwards then it is relevant.
                  If the text mentions Hsin Yi Chen then it is not relevant."""},
                 
                 {"role": "user", "content": topic}
@@ -380,7 +380,7 @@ if __name__ == '__main__':
                   "social"     : EmailId("social"),
                   "updates"    : EmailId("updates")}
     
-    ignore = getEmailIdList('primary'),
+    ignore = getEmailIdList('primary')
     emails =  (getEmailList('promotions', ignore) +
                getEmailList('social',     ignore) +
                getEmailList('updates',    ignore))
