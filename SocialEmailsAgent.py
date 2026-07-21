@@ -196,17 +196,18 @@ def relevance(topic):
                  answer 'NO' if it is not relevant,
                  answer 'UNSURE' if you are not sure.
                  Provide a brief reason.
-                 If the text talks about somebody merely commenting on something or reacting to something,
-                 then it is not relevant.
-                 But if somebody actually posts a social message himself then it is relevant;
-                 the exception is Hsin Yi Chen -- her posts are never relevant.
+                 
+                 All social media posts are not relevant,
+                 except direct posts by Stephen Edwards (not mere comments on somebody's post).
+                 
                  If the text informs me of a new message, searches, job availability, noticing me, or invitation
-                 then it is not relevant.
-                 Any kind of bank statement is relevant.
-                 Anything concerning security is relevant.                 
+                 then it is not relevant.               
                  Any news item or public anouncement is not relevant.
                  Any offer of savings or advice is not relevant.
-                 Anything designed to draw a person's attention without saying what it is about is not relevant.
+                 Anything designed to draw a person's attention without saying what it is about, is not relevant.
+                 
+                 Any kind of bank statement is relevant.
+                 Anything concerning security is relevant.  
                  """},
                 
                 {"role": "user",
