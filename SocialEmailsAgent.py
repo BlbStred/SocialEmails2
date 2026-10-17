@@ -170,7 +170,9 @@ class EmailId:
 
         
 
-
+def ensure_ascii_only(text: str) -> str:
+    # Encodes to ascii, replacing or ignoring non-ascii characters
+    return text.encode("ascii", errors="ignore").decode("ascii")
 
 #######################################
 # AI SERVICES
@@ -217,7 +219,7 @@ def relevance(topic):
         )
         
         result = response.choices[0].message.content
-        print(topic, " --> ", result)
+        print(topic, " --> ", ensure_ascii_only(result))
         return result.split()[0]  # YES, NO, UNSURE is the first word
 
     except Exception as e:
