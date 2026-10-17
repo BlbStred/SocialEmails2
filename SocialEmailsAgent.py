@@ -201,7 +201,7 @@ def relevance(topic):
                  Provide a brief reason.
                  
                  All social media posts are not relevant,
-                 except direct posts by Stephen Edwards (not mere comments on somebody's post).
+                 except any post by Stephen Edwards.
                  
                  If the text informs me of a new message, searches, job availability, noticing me, or invitation
                  then it is not relevant.               
