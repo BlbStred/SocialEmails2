@@ -186,7 +186,8 @@ def relevance(topic):
     try:
         # The Request
         response = aiService.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-6-luna",
+            reasoning_effort="none",
             seed=42,         # for determinism
             temperature=0,   # otherwise makes wrong decision with no reason
             messages=[
