@@ -155,18 +155,23 @@ class EmailId:
 
     def processed(self, emailId):
         if self.prevId == None:
-            # first time processed() called, whuch is the most recent id
+            # first time processed() called, which is the most recent id
             # remember it, and record it in file
             try:
                 with open(self.fileName, "r") as file:
-                    self.prevId = file.readline().split()[0]
+                    self.prevId = []
+                    while True:
+                        line = file.readline()
+                        if not line:
+                            break
+                        self.prevId.append(line.split()[0])
             except:
-                self.prevId     = ""        
+                self.prevId     = []       
 
-            with open(self.fileName, "w") as file:
-                file.write(emailId + " is the most recent email id already processed")
+            with open(self.fileName, "a") as file:
+                file.write(emailId + " is the most recent email id already processed\n")
             
-        return emailId == self.prevId
+        return emailId in self.prevId
 
         
 
